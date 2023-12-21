@@ -178,11 +178,6 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fsErr)
 				return
 			}
-			//union, unionErr := NewUnionSchema([]Schema{&NullSchema{}, fs})
-			//if unionErr != nil {
-			//	err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), unionErr)
-			//	return
-			//}
 			field, fieldErr = NewField(pname, fs)
 			break
 		case reflect.Array:
@@ -209,6 +204,12 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 		if fieldErr != nil {
 			err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fieldErr)
 			return
+		}
+		for _, f := range fields {
+			if f.name == field.name {
+				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fmt.Errorf("tag name is duplicated"))
+				return
+			}
 		}
 		fields = append(fields, field)
 	}

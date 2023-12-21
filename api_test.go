@@ -8,12 +8,17 @@ import (
 	"time"
 )
 
+type Anonymous struct {
+	Anonymous string `avro:"anonymous"`
+}
+
 type Bar struct {
 	String string `avro:"string"`
 	Next   *Bar   `avro:"next"`
 }
 
 type Foo struct {
+	Anonymous
 	String  string         `avro:"string"`
 	Boolean bool           `avro:"boolean"`
 	Int     int            `avro:"int"`
@@ -39,6 +44,9 @@ func TestMarshal(t *testing.T) {
 	}
 	t.Log(s)
 	foo := Foo{
+		Anonymous: Anonymous{
+			Anonymous: "Anonymous",
+		},
 		String:  "foo",
 		Boolean: true,
 		Int:     1,

@@ -65,7 +65,7 @@ func (w *Writer) WriteVal(schema Schema, val any) {
 
 func (c *frozenConfig) DecoderOf(schema Schema, typ reflect2.Type) ValDecoder {
 	processKey := c.borrowProcessDecoderGroupKey(schema, typ)
-	v, _, _ := c.processingGroup.Do(*(*string)(unsafe.Pointer(&processKey)), func() (interface{}, error) {
+	v, _, _ := c.processingGroup.Do(unsafe.String(unsafe.SliceData(processKey), len(processKey)), func() (interface{}, error) {
 		rtype := typ.RType()
 		decoder := c.getDecoderFromCache(schema.Fingerprint(), rtype)
 		if decoder != nil {
@@ -126,7 +126,7 @@ func decoderOfType(cfg *frozenConfig, schema Schema, typ reflect2.Type) ValDecod
 
 func (c *frozenConfig) EncoderOf(schema Schema, typ reflect2.Type) ValEncoder {
 	processKey := c.borrowProcessEncoderGroupKey(schema, typ)
-	v, _, _ := c.processingGroup.Do(*(*string)(unsafe.Pointer(&processKey)), func() (interface{}, error) {
+	v, _, _ := c.processingGroup.Do(unsafe.String(unsafe.SliceData(processKey), len(processKey)), func() (interface{}, error) {
 		if typ == nil {
 			typ = reflect2.TypeOf((*null)(nil))
 		}

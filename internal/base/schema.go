@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/aacfactory/avro/internal/hashs/crc64"
 	"golang.org/x/sync/singleflight"
 	"hash"
 	"sort"
@@ -14,7 +15,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/hamba/avro/v2/pkg/crc64"
 	jsoniter "github.com/json-iterator/go"
 )
 

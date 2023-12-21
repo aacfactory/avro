@@ -1,24 +1,16 @@
 package avro_test
 
 import (
+	"encoding/json"
 	"github.com/aacfactory/avro"
-	"github.com/aacfactory/json"
-	sa "github.com/hamba/avro/v2"
+	"github.com/aacfactory/avro/internal/base"
 	"testing"
 	"time"
 )
 
-type STR string
-
-type Baz struct {
-	S STR `avro:"s"`
-}
-
 type Bar struct {
-	Id   string `avro:"id"`
-	Name string `avro:"name"`
-	//Bar  *Bar   `avro:"bar"`
-	//Baz *Baz `avro:"baz"`
+	String string `avro:"string"`
+	Next   *Bar   `avro:"next"`
 }
 
 type Foo struct {
@@ -28,61 +20,88 @@ type Foo struct {
 	Long    int64          `avro:"long"`
 	Float   float32        `avro:"float"`
 	Double  float64        `avro:"double"`
-	Fixed   uint64         `avro:"fixed"`
+	Uint    uint64         `avro:"uint"`
 	Time    time.Time      `avro:"time"`
 	Dur     time.Duration  `avro:"dur"`
+	Byte    byte           `avro:"byte"`
 	Bytes   []byte         `avro:"bytes"`
+	Bar     Bar            `avro:"bar"`
+	Baz     *Bar           `avro:"baz"`
 	Bars    []Bar          `avro:"bars"`
-	Barz    []*Bar         `avro:"barz"`
-	Bazs    map[string]Baz `avro:"bazs"`
+	Map     map[string]Bar `avro:"map"`
 }
 
 func TestMarshal(t *testing.T) {
-	p, encodeErr := avro.Marshal(Foo{
-		String:  "str",
+	s, parseErr := base.ParseValue(Foo{})
+	if parseErr != nil {
+		t.Error(parseErr)
+		return
+	}
+	t.Log(s)
+	foo := Foo{
+		String:  "foo",
 		Boolean: true,
 		Int:     1,
-		Long:    11,
-		Float:   11.1,
-		Double:  22.2,
-		Fixed:   3,
+		Long:    2,
+		Float:   3.3,
+		Double:  4.4,
+		Uint:    uint64(5),
 		Time:    time.Now(),
-		Dur:     8 * time.Second,
-		Bytes:   []byte("xxx"),
-		Bars:    []Bar{{Id: "id"}},
-		Barz:    []*Bar{{Id: "id1"}},
-		Bazs:    map[string]Baz{"id": {S: "sss"}},
-	})
+		Dur:     10 * time.Hour,
+		Byte:    'B',
+		Bytes:   []byte("bytes"),
+		Bar: Bar{
+			String: "bar",
+			Next: &Bar{
+				String: "Bar-Next",
+				Next:   nil,
+			},
+		},
+		Baz:  nil,
+		Bars: []Bar{{String: "bar-1"}},
+		Map:  map[string]Bar{"bar2": {String: "bar-2"}},
+	}
+
+	p, encodeErr := base.Marshal(s, foo)
 	if encodeErr != nil {
 		t.Error(encodeErr)
 		return
 	}
 	t.Log(len(p))
-	foo := Foo{}
-	decodeErr := avro.Unmarshal(p, &foo)
+	r := Foo{}
+	decodeErr := base.Unmarshal(s, p, &r)
 	if decodeErr != nil {
 		t.Error(decodeErr)
 		return
 	}
-	t.Logf("%+v", foo)
+	t.Logf("%+v", r)
 }
 
-func BenchmarkMarshal(b *testing.B) {
+func BenchmarkAvro(b *testing.B) {
+	// BenchmarkAvro-20         1000000              1054 ns/op             626 B/op	9 allocs/op
 	b.ReportAllocs()
 	foo := Foo{
-		String:  "str",
+		String:  "foo",
 		Boolean: true,
 		Int:     1,
-		Long:    11,
-		Float:   11.1,
-		Double:  22.2,
-		Fixed:   3,
+		Long:    2,
+		Float:   3.3,
+		Double:  4.4,
+		Uint:    uint64(5),
 		Time:    time.Now(),
-		Dur:     8 * time.Second,
-		Bytes:   []byte("xxx"),
-		Bars:    []Bar{{Id: "id"}},
-		Barz:    []*Bar{{Id: "id1"}},
-		Bazs:    map[string]Baz{"id": {S: "sss"}},
+		Dur:     10 * time.Hour,
+		Byte:    'B',
+		Bytes:   []byte("bytes"),
+		Bar: Bar{
+			String: "bar",
+			Next: &Bar{
+				String: "Bar-Next",
+				Next:   nil,
+			},
+		},
+		Baz:  nil,
+		Bars: []Bar{{String: "bar-1"}},
+		Map:  map[string]Bar{"bar2": {String: "bar-2"}},
 	}
 	for i := 0; i < b.N; i++ {
 		p, _ := avro.Marshal(foo)
@@ -91,48 +110,34 @@ func BenchmarkMarshal(b *testing.B) {
 }
 
 func BenchmarkJson(b *testing.B) {
+	// fastjson BenchmarkJson-20          591304              1953 ns/op             889 B/op          19 allocs/op
+	// json 	BenchmarkJson-20          260964              4495 ns/op            1218 B/op 		  29 allocs/op
 	b.ReportAllocs()
 	foo := Foo{
-		String:  "str",
+		String:  "foo",
 		Boolean: true,
 		Int:     1,
-		Long:    11,
-		Float:   11.1,
-		Double:  22.2,
-		Fixed:   3,
+		Long:    2,
+		Float:   3.3,
+		Double:  4.4,
+		Uint:    uint64(5),
 		Time:    time.Now(),
-		Dur:     8 * time.Second,
-		Bytes:   []byte("xxx"),
-		Bars:    []Bar{{Id: "id"}},
-		Barz:    []*Bar{{Id: "id1"}},
-		Bazs:    map[string]Baz{"id": {S: "sss"}},
+		Dur:     10 * time.Hour,
+		Byte:    'B',
+		Bytes:   []byte("bytes"),
+		Bar: Bar{
+			String: "bar",
+			Next: &Bar{
+				String: "Bar-Next",
+				Next:   nil,
+			},
+		},
+		Baz:  nil,
+		Bars: []Bar{{String: "bar-1"}},
+		Map:  map[string]Bar{"bar2": {String: "bar-2"}},
 	}
 	for i := 0; i < b.N; i++ {
 		p, _ := json.Marshal(foo)
 		_ = json.Unmarshal(p, &foo)
 	}
-}
-
-func TestBar(t *testing.T) {
-	schema, schemaErr := sa.Parse(`{
-	"type": "record",
-	"name": "Bar",
-	"fields": [
-	{"name": "id", "type": "string"},
-	{"name": "name", "type": "string"}
-]
-}`)
-	if schemaErr != nil {
-		t.Error(schemaErr)
-		return
-	}
-	p, err := sa.Marshal(schema, Bar{
-		Id:   "d",
-		Name: "1",
-	})
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	t.Log(len(p))
 }

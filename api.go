@@ -23,3 +23,7 @@ func Unmarshal(p []byte, v any) (err error) {
 	err = base.Unmarshal(schema, p, v)
 	return
 }
+
+func Register(v any) {
+	base.RegisterSchemaByValue(v)
+}

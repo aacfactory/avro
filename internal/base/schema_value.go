@@ -39,6 +39,7 @@ func ParseValue(v any) (s Schema, err error) {
 		return
 	})
 	if doErr != nil {
+		err = doErr
 		return
 	}
 	s = r.(Schema)

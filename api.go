@@ -2,6 +2,7 @@ package avro
 
 import (
 	"github.com/aacfactory/avro/internal/base"
+	"unsafe"
 )
 
 func Marshal(v any) (p []byte, err error) {
@@ -26,4 +27,15 @@ func Unmarshal(p []byte, v any) (err error) {
 
 func Register(v any) {
 	base.RegisterSchemaByValue(v)
+}
+
+func SchemaOf(v any) (p []byte, err error) {
+	s, parseErr := base.ParseValue(v)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
+	str := s.String()
+	p = unsafe.Slice(unsafe.StringData(str), len(str))
+	return
 }

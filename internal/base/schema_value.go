@@ -47,6 +47,12 @@ func ParseValue(v any) (s Schema, err error) {
 }
 
 func parseValueType(typ reflect2.Type) (s Schema, err error) {
+	if typ.Implements(marshalerType) || typ.Implements(unmarshalerType) {
+		return NewPrimitiveSchema(Raw, nil), nil
+	}
+	if reflect2.PtrTo(typ).Implements(unmarshalerType) {
+		return NewPrimitiveSchema(Raw, nil), nil
+	}
 	switch typ.Kind() {
 	case reflect.String:
 		return NewPrimitiveSchema(String, nil), nil
@@ -83,6 +89,12 @@ func parseValueType(typ reflect2.Type) (s Schema, err error) {
 }
 
 func makeSchemaName(typ reflect2.Type) string {
+	if typ.Implements(marshalerType) || typ.Implements(unmarshalerType) {
+		return strings.ReplaceAll(typ.Type1().PkgPath(), "/", ".") + "." + typ.Type1().Name()
+	}
+	if reflect2.PtrTo(typ).Implements(unmarshalerType) {
+		return strings.ReplaceAll(typ.Type1().PkgPath(), "/", ".") + "." + typ.Type1().Name()
+	}
 	switch typ.Kind() {
 	case reflect.String:
 		return string(String)

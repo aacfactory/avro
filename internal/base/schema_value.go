@@ -90,10 +90,10 @@ func parseValueType(typ reflect2.Type) (s Schema, err error) {
 
 func makeSchemaName(typ reflect2.Type) string {
 	if typ.Implements(marshalerType) || typ.Implements(unmarshalerType) {
-		return strings.ReplaceAll(typ.Type1().PkgPath(), "/", ".") + "." + typ.Type1().Name()
+		return namespace(typ.Type1().PkgPath()) + "." + typ.Type1().Name()
 	}
 	if reflect2.PtrTo(typ).Implements(unmarshalerType) {
-		return strings.ReplaceAll(typ.Type1().PkgPath(), "/", ".") + "." + typ.Type1().Name()
+		return namespace(typ.Type1().PkgPath()) + "." + typ.Type1().Name()
 	}
 	switch typ.Kind() {
 	case reflect.String:
@@ -119,7 +119,7 @@ func makeSchemaName(typ reflect2.Type) string {
 		if typ.Type1().ConvertibleTo(timeType) {
 			return string(Long) + "." + string(TimestampMicros)
 		}
-		return strings.ReplaceAll(typ.Type1().PkgPath(), "/", ".") + "." + typ.Type1().Name()
+		return namespace(typ.Type1().PkgPath()) + "." + typ.Type1().Name()
 	case reflect.Ptr:
 		elemType := typ.Type1().Elem()
 		if elemType.Kind() != reflect.Struct {
@@ -158,4 +158,10 @@ func makeSchemaName(typ reflect2.Type) string {
 	default:
 		return ""
 	}
+}
+
+func namespace(pkg string) (v string) {
+	v = strings.ReplaceAll(pkg, "/", ".")
+	v = strings.ReplaceAll(v, "-", "_")
+	return
 }

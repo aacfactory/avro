@@ -19,7 +19,7 @@ func parseStructType(typ reflect2.Type) (s Schema, err error) {
 		return NewPrimitiveSchema(Raw, nil), nil
 	}
 	pkg := typ.Type1().PkgPath()
-	pkg = strings.ReplaceAll(pkg, "/", ".")
+	pkg = namespace(pkg)
 	typeName := typ.Type1().Name()
 	processingKey := pkg + "." + typeName
 	s = DefaultSchemaCache.getProcessing(processingKey)

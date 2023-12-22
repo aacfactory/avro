@@ -69,3 +69,12 @@ func MustMarshal(v any) (p []byte) {
 	p = b
 	return
 }
+
+func MustUnmarshal(p []byte, v any) {
+	err := Unmarshal(p, v)
+	if err != nil {
+		panic(fmt.Errorf("avro: unmarshal failed, %v", err))
+		return
+	}
+	return
+}

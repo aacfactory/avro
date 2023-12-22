@@ -84,6 +84,12 @@ func parseValueType(typ reflect2.Type) (s Schema, err error) {
 	case reflect.Map:
 		return parseMapType(typ)
 	default:
+		if typ.Implements(marshalerType) || typ.Implements(unmarshalerType) {
+			return NewPrimitiveSchema(Raw, nil), nil
+		}
+		if reflect2.PtrTo(typ).Implements(unmarshalerType) {
+			return NewPrimitiveSchema(Raw, nil), nil
+		}
 		return nil, fmt.Errorf("avro: type %s is unsupported", typ.String())
 	}
 }

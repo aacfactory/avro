@@ -1,6 +1,7 @@
 package avro
 
 import (
+	"fmt"
 	"github.com/aacfactory/avro/internal/base"
 	"unsafe"
 )
@@ -46,4 +47,25 @@ type Marshaler interface {
 
 type Unmarshaler interface {
 	UnmarshalAvro(p []byte) error
+}
+
+type RawMessage []byte
+
+func (r *RawMessage) UnmarshalAvro(p []byte) error {
+	*r = p
+	return nil
+}
+
+func (r RawMessage) MarshalAvro() ([]byte, error) {
+	return r, nil
+}
+
+func MustMarshal(v any) (p []byte) {
+	b, err := Marshal(v)
+	if err != nil {
+		panic(fmt.Errorf("avro: marshal failed, %v", err))
+		return
+	}
+	p = b
+	return
 }

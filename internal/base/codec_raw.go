@@ -13,7 +13,7 @@ var (
 )
 
 var (
-	anySchema = NewPrimitiveSchema(Bytes, nil)
+	rawSchema = NewPrimitiveSchema(Bytes, nil)
 )
 
 type Marshaler interface {
@@ -62,7 +62,13 @@ func (c rawCodec) Decode(ptr unsafe.Pointer, r *Reader) {
 	}
 	unmarshaler := (obj).(Unmarshaler)
 	b := r.ReadBytes()
-	err := unmarshaler.UnmarshalAvro(b)
+	p := make([]byte, 0)
+	decodeErr := Unmarshal(rawSchema, b, &p)
+	if decodeErr != nil {
+		r.ReportError("MarshalerCodec", decodeErr.Error())
+		return
+	}
+	err := unmarshaler.UnmarshalAvro(p)
 	if err != nil {
 		r.ReportError("MarshalerCodec", err.Error())
 	}
@@ -80,7 +86,7 @@ func (c rawCodec) Encode(ptr unsafe.Pointer, w *Writer) {
 		w.Error = err
 		return
 	}
-	b, err = Marshal(anySchema, b)
+	b, err = Marshal(rawSchema, b)
 	if err != nil {
 		w.Error = err
 		return

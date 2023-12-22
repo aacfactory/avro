@@ -129,7 +129,7 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 				field, fieldErr = NewField(pname, NewRefSchema(named))
 				break
 			}
-			processing, err = parseStructType(ft.Type())
+			processing, err = parseValueType(ft.Type())
 			if err != nil {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), err)
 				return
@@ -163,7 +163,7 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 				field, fieldErr = NewField(pname, union, WithDefault(nil))
 				break
 			}
-			processing, err = parseStructType(elemType)
+			processing, err = parseValueType(elemType)
 			if err != nil {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), err)
 				return
@@ -176,7 +176,7 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 			field, fieldErr = NewField(pname, union, WithDefault(nil))
 			break
 		case reflect.Slice:
-			fs, fsErr := parseSliceType(ft.Type())
+			fs, fsErr := parseValueType(ft.Type())
 			if fsErr != nil {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fsErr)
 				return
@@ -184,7 +184,7 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 			field, fieldErr = NewField(pname, fs)
 			break
 		case reflect.Array:
-			fs, fsErr := parseArrayType(ft.Type())
+			fs, fsErr := parseValueType(ft.Type())
 			if fsErr != nil {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fsErr)
 				return
@@ -192,7 +192,7 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 			field, fieldErr = NewField(pname, fs)
 			break
 		case reflect.Map:
-			fs, fsErr := parseMapType(ft.Type())
+			fs, fsErr := parseValueType(ft.Type())
 			if fsErr != nil {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fsErr)
 				return
@@ -200,6 +200,15 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 			field, fieldErr = NewField(pname, fs)
 			break
 		default:
+			if ft.Type().Implements(marshalerType) || ft.Type().Implements(unmarshalerType) {
+				field, fieldErr = NewField(pname, rawSchema)
+				break
+			}
+			pft := reflect2.PtrTo(ft.Type())
+			if pft.Implements(marshalerType) || pft.Implements(unmarshalerType) {
+				field, fieldErr = NewField(pname, rawSchema)
+				break
+			}
 			err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fmt.Errorf("unsupported type"))
 			return
 		}

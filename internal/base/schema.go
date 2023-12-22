@@ -49,6 +49,7 @@ const (
 	Double  Type = "double"
 	Boolean Type = "boolean"
 	Null    Type = "null"
+	Raw     Type = "raw"
 )
 
 // Order is a field order.

@@ -7,6 +7,9 @@ import (
 )
 
 func parsePtrType(typ reflect2.Type) (s Schema, err error) {
+	if typ.Implements(marshalerType) || typ.Implements(unmarshalerType) {
+		return NewPrimitiveSchema(Raw, nil), nil
+	}
 	ptrType := typ.(reflect2.PtrType)
 	elemType := ptrType.Elem()
 	if elemType.Kind() != reflect.Struct {

@@ -6,6 +6,19 @@ import (
 	"time"
 )
 
+type Any struct {
+	p []byte
+}
+
+func (a *Any) UnmarshalAvro(p []byte) error {
+	a.p = p
+	return nil
+}
+
+func (a Any) MarshalAvro() ([]byte, error) {
+	return a.p, nil
+}
+
 type Bar struct {
 	String string `avro:"string"`
 	Next   *Bar   `avro:"next"`
@@ -27,6 +40,7 @@ type Foo struct {
 	Baz     *Bar           `avro:"baz"`
 	Bars    []Bar          `avro:"bars"`
 	Map     map[string]Bar `avro:"map"`
+	Any     Any            `avro:"any"`
 }
 
 func TestParseValue(t *testing.T) {
@@ -58,6 +72,9 @@ func TestParseValue(t *testing.T) {
 		Baz:  nil,
 		Bars: []Bar{{String: "bar-1"}},
 		Map:  map[string]Bar{"bar2": {String: "bar-2"}},
+		Any: Any{
+			p: []byte("xxx"),
+		},
 	}
 
 	p, encodeErr := base.Marshal(s, foo)

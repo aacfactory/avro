@@ -8,6 +8,19 @@ import (
 	"time"
 )
 
+type Any struct {
+	p []byte
+}
+
+func (a *Any) UnmarshalAvro(p []byte) error {
+	a.p = make([]byte, 0)
+	return avro.Unmarshal(p, &a.p)
+}
+
+func (a Any) MarshalAvro() ([]byte, error) {
+	return a.p, nil
+}
+
 type Anonymous struct {
 	Anonymous string `avro:"anonymous"`
 }
@@ -34,6 +47,7 @@ type Foo struct {
 	Baz     *Bar           `avro:"baz"`
 	Bars    []Bar          `avro:"bars"`
 	Map     map[string]Bar `avro:"map"`
+	Any     Any            `avro:"any"`
 }
 
 func TestMarshal(t *testing.T) {
@@ -68,6 +82,9 @@ func TestMarshal(t *testing.T) {
 		Baz:  nil,
 		Bars: []Bar{{String: "bar-1"}},
 		Map:  map[string]Bar{"bar2": {String: "bar-2"}},
+		Any: Any{
+			p: []byte("any"),
+		},
 	}
 
 	p, encodeErr := base.Marshal(s, foo)

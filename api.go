@@ -39,3 +39,11 @@ func SchemaOf(v any) (p []byte, err error) {
 	p = unsafe.Slice(unsafe.StringData(str), len(str))
 	return
 }
+
+type Marshaler interface {
+	MarshalAvro() ([]byte, error)
+}
+
+type Unmarshaler interface {
+	UnmarshalAvro(p []byte) error
+}

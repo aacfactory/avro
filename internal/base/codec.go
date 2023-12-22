@@ -118,6 +118,8 @@ func decoderOfType(cfg *frozenConfig, schema Schema, typ reflect2.Type) ValDecod
 	case Fixed:
 		return createDecoderOfFixed(schema, typ)
 
+	case Raw:
+		return createDecoderOfRaw(cfg, schema, typ)
 	default:
 		// It is impossible to get here with a valid schema
 		return &errorDecoder{err: fmt.Errorf("avro: schema type %s is unsupported", schema.Type())}
@@ -189,7 +191,8 @@ func encoderOfType(cfg *frozenConfig, schema Schema, typ reflect2.Type) ValEncod
 
 	case Fixed:
 		return createEncoderOfFixed(schema, typ)
-
+	case Raw:
+		return createEncoderOfRaw(cfg, schema, typ)
 	default:
 		// It is impossible to get here with a valid schema
 		return &errorEncoder{err: fmt.Errorf("avro: schema type %s is unsupported", schema.Type())}

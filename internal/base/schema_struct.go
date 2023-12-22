@@ -15,6 +15,9 @@ func parseStructType(typ reflect2.Type) (s Schema, err error) {
 	if typ.Type1().ConvertibleTo(timeType) {
 		return NewPrimitiveSchema(Long, NewPrimitiveLogicalSchema(TimestampMicros)), nil
 	}
+	if typ.Implements(marshalerType) || typ.Implements(unmarshalerType) {
+		return NewPrimitiveSchema(Raw, nil), nil
+	}
 	pkg := typ.Type1().PkgPath()
 	pkg = strings.ReplaceAll(pkg, "/", ".")
 	typeName := typ.Type1().Name()

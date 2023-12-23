@@ -46,12 +46,33 @@ func ParseValue(v any) (s Schema, err error) {
 	return
 }
 
-func parseValueType(typ reflect2.Type) (s Schema, err error) {
+func tryParseMarshal(typ reflect2.Type) (s Schema) {
 	if typ.Implements(marshalerType) || typ.Implements(unmarshalerType) {
-		return NewPrimitiveSchema(Raw, nil), nil
+		return NewPrimitiveSchema(Raw, nil)
 	}
 	if reflect2.PtrTo(typ).Implements(unmarshalerType) {
-		return NewPrimitiveSchema(Raw, nil), nil
+		return NewPrimitiveSchema(Raw, nil)
+	}
+	if reflect2.PtrTo(typ).Implements(textMarshalerType) {
+		return NewPrimitiveSchema(String, nil)
+	}
+	if typ.Implements(textMarshalerType) {
+		return NewPrimitiveSchema(String, nil)
+	}
+	if reflect2.PtrTo(typ).Implements(textUnmarshalerType) {
+		return NewPrimitiveSchema(String, nil)
+	}
+	if typ.Implements(textUnmarshalerType) {
+		return NewPrimitiveSchema(String, nil)
+	}
+	return nil
+}
+
+func parseValueType(typ reflect2.Type) (s Schema, err error) {
+	ms := tryParseMarshal(typ)
+	if ms != nil {
+		s = ms
+		return
 	}
 	switch typ.Kind() {
 	case reflect.String:

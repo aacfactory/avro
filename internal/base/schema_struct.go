@@ -113,6 +113,11 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fmt.Errorf("please use ptr"))
 				return
 			}
+			ms := tryParseMarshal(ft.Type())
+			if ms != nil {
+				field, fieldErr = NewField(pname, ms)
+				break
+			}
 			pkey := makeSchemaName(ft.Type())
 			if pkey == "" {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fmt.Errorf("unsupported type"))
@@ -138,6 +143,11 @@ func parseStructFieldTypes(typ reflect2.Type) (fields []*Field, err error) {
 			break
 		case reflect.Ptr:
 			ptrType := ft.Type().(reflect2.PtrType)
+			ms := tryParseMarshal(ptrType)
+			if ms != nil {
+				field, fieldErr = NewField(pname, ms)
+				break
+			}
 			elemType := ptrType.Elem()
 			if elemType.Kind() != reflect.Struct {
 				err = fmt.Errorf("avro: parse %s.%s failed, %v", st.String(), ft.Name(), fmt.Errorf("unsupported type"))

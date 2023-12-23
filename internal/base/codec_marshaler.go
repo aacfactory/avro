@@ -48,6 +48,9 @@ func (c textMarshalerCodec) Decode(ptr unsafe.Pointer, r *Reader) {
 	}
 	unmarshaler := (obj).(encoding.TextUnmarshaler)
 	b := r.ReadBytes()
+	if len(b) == 0 {
+		return
+	}
 	err := unmarshaler.UnmarshalText(b)
 	if err != nil {
 		r.ReportError("textMarshalerCodec", err.Error())

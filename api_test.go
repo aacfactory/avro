@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/aacfactory/avro"
 	"github.com/aacfactory/avro/internal/base"
+	"math/big"
 	"testing"
 	"time"
 )
@@ -13,8 +14,8 @@ type Any struct {
 }
 
 func (a *Any) UnmarshalAvro(p []byte) error {
-	a.p = make([]byte, 0)
-	return avro.Unmarshal(p, &a.p)
+	a.p = p
+	return nil
 }
 
 func (a Any) MarshalAvro() ([]byte, error) {
@@ -43,6 +44,7 @@ type Foo struct {
 	Dur     time.Duration  `avro:"dur"`
 	Byte    byte           `avro:"byte"`
 	Bytes   []byte         `avro:"bytes"`
+	BigInt  *big.Int       `avro:"bigInt"`
 	Bar     Bar            `avro:"bar"`
 	Baz     *Bar           `avro:"baz"`
 	Bars    []Bar          `avro:"bars"`
@@ -70,6 +72,7 @@ func TestMarshal(t *testing.T) {
 		Uint:    uint64(5),
 		Time:    time.Now(),
 		Dur:     10 * time.Hour,
+		BigInt:  big.NewInt(12),
 		Byte:    'B',
 		Bytes:   []byte("bytes"),
 		Bar: Bar{
@@ -165,4 +168,48 @@ func BenchmarkJson(b *testing.B) {
 		p, _ := json.Marshal(foo)
 		_ = json.Unmarshal(p, &foo)
 	}
+}
+
+type Big struct {
+	Int   *big.Int   `avro:"Int"`
+	Float *big.Float `avro:"float"`
+	Rat   *big.Rat   `avro:"rat"`
+}
+
+func TestBigInt(t *testing.T) {
+	v := Big{
+		Int:   big.NewInt(1),
+		Float: big.NewFloat(2),
+		Rat:   big.NewRat(1, 3),
+	}
+	p, err := avro.Marshal(v)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(string(p))
+	v = Big{}
+	err = avro.Unmarshal(p, &v)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(v)
+}
+
+func TestMap(t *testing.T) {
+	v := map[string]string{"a": "a", "b": "b"}
+	p, err := avro.Marshal(v)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(string(p))
+	v = make(map[string]string)
+	err = avro.Unmarshal(p, &v)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(v)
 }
